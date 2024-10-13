@@ -21,6 +21,7 @@
   }
 
   let code ="";
+  let msg = "";
 
   function connect() {
     let websocket = new WebSocket('ws://localhost:3000/ws');
@@ -40,12 +41,14 @@
       websocket.send(`host:${quiz.id}`);
     };
     websocket.onmessage = (event) => {
+      msg = event.data;
       console.log(event.data);
     };
   }
 </script>
 
 <button on:click={getQuizzes}>Get Quizzes</button>
+Message: {msg}  
 
 <!-- Iterating through quizzes as quiz using js -->
 <div>
