@@ -20,11 +20,24 @@
       console.log(json);
   }
 
+  let code ="";
+
   function connect() {
     let websocket = new WebSocket('ws://localhost:3000/ws');
     websocket.onopen = () => {
       console.log('Connected to the server');
-      websocket.send('Hello from the client!');
+      websocket.send(`join:${code}`);
+    };
+    websocket.onmessage = (event) => {
+      console.log(event.data);
+    };
+  }
+
+  function hostQuiz(quiz) {
+    let websocket = new WebSocket('ws://localhost:3000/ws');
+    websocket.onopen = () => {
+      console.log('Connected to the server');
+      websocket.send(`host:${quiz.id}`);
     };
     websocket.onmessage = (event) => {
       console.log(event.data);
@@ -33,15 +46,18 @@
 </script>
 
 <button on:click={getQuizzes}>Get Quizzes</button>
-<button on:click={connect}>Connect</button>
-<!-- Iterating through quizzes as quiz using js -->
-{#each quizzes as quiz}
-  <QuizCard {quiz} />
-{/each}
 
-<Button>
-  <p>Click me</p>
-</Button>
+<!-- Iterating through quizzes as quiz using js -->
+<div>
+{#each quizzes as quiz}
+  <QuizCard on:host={() => hostQuiz(quiz)} quiz={quiz} />
+{/each}
+</div>
+
+<input bind:value={code} class="border" type="text" placeholder="Game Code" />
+<Button on:click={connect}>Join Game</Button>
+
+
 <main>
   <div>
     <a href="https://vitejs.dev" target="_blank" rel="noreferrer">

@@ -1,34 +1,35 @@
 package controller
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/gofiber/contrib/websocket"
+	"quiz.com/quiz/internal/service"
 )
 
-type WebsocketController struct{}
-
-func Ws() WebsocketController {
-	return WebsocketController{}
+type WebsocketController struct {
+	netService *service.NetService
 }
 
-func (c WebsocketController) Ws(conn *websocket.Conn) {
-	fmt.Println("New WebSocket connection established")
+func Ws(netService *service.NetService) WebsocketController {
+	return WebsocketController{
+		netService: netService,
+	}
+}
+
+func (c WebsocketController) Ws(con *websocket.Conn) {
+	var (
+		mt  int
+		msg []byte
+		err error
+	)
 
 	for {
-		mt, msg, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Error reading message:", err)
+		if mt, msg, err = con.ReadMessage(); err != nil {
+			log.Println("read:", err)
 			break
 		}
 
-		fmt.Printf("Received message: %s\n", string(msg))
-
-		if err := conn.WriteMessage(mt, msg); err != nil {
-			fmt.Println("Error writing message:", err)
-			break
-		}
+		c.netService.OnIncomingMessage(con, mt, msg)
 	}
-
-	fmt.Println("WebSocket connection closed")
 }
