@@ -13,12 +13,15 @@ export interface Player {
 }
 
 export interface QuizQuestion {
+    name: any;
     id: string;
     question: string;
     choices: QuizChoice[];
 }
 
 export interface QuizChoice {
+    [x: string]: any;
+    text: any;
     id: string;
     choice: string;
     correct: boolean;

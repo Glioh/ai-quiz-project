@@ -4,11 +4,23 @@
   import Counter from './lib/Counter.svelte'
   import Button from './lib/Button.svelte'
   import QuizCard from './lib/QuizCard.svelte'
+    import type { Quiz, QuizQuestion } from './model/quiz';
     import { NetService } from './service/net';
 
   let quizzes: {_id : string, name: string}[] = [];
+  
+  let currentQuestion: QuizQuestion | null = null;
   let netService = new NetService();
   netService.connect();
+  netService.onPacket((packet: any) => {
+    console.log(packet);
+    switch(packet.id){
+      case 2:{
+        currentQuestion = packet.question;
+        break;
+      }
+    }
+  });
 
 
   async function getQuizzes() {
@@ -53,6 +65,17 @@ Message: {msg}
   <QuizCard on:host={() => hostQuiz(quiz)} quiz={quiz} />
 {/each}
 </div>
+
+{#if currentQuestion != null}
+  <h2 class="text-4x1 font-bold mt-8">{currentQuestion.name}</h2>
+  <div class="flex">
+      {#each currentQuestion.choices as choice}
+        <div class="flex-1 bg-blue-400 text-center font-bold text-2x1 text-white justify-center">
+          {choice.name}
+        </div>
+      {/each}
+  </div>
+{/if}
 
 <input bind:value={code} class="border" type="text" placeholder="Game Code" />
 <Button on:click={connect}>Join Game</Button>

@@ -3,6 +3,8 @@ export class NetService {
     private textDecoder: TextDecoder = new TextDecoder();
     private textEncoder: TextEncoder = new TextEncoder();
 
+    private onPacketCallback?: (packet: any) => void;
+
     connect() {
         this.webSocket = new WebSocket("ws://localhost:3000/ws");
         this.webSocket.onopen = () => {
@@ -21,7 +23,14 @@ export class NetService {
 
             console.log(packetId);
             console.log(packet);
+
+            if(this.onPacketCallback)
+                this.onPacketCallback(packet);
         }
+    }
+
+    onPacket(callback: (packet: any) => void) {
+        this.onPacketCallback = callback;
     }
 
     sendPacket(packet: any) {

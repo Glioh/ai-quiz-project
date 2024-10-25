@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 	"quiz.com/quiz/internal/entity"
@@ -101,6 +102,22 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 	case *HostGamePacket:
 		{
 			fmt.Printf("Host game packet received: QuizId=%s\n", data.QuizId)
+			go func() {
+				time.Sleep(time.Second * 5)
+				c.SendPacket(con, QuestionShowPacket{
+					Question: entity.QuizQuestion{
+						Name: "What is 2+2",
+						Choices: []entity.QuizChoice{
+							{
+								Name: "4",
+							},
+							{
+								Name: "9",
+							},
+						},
+					},
+				})
+			}()
 			break
 		}
 	}
@@ -112,7 +129,7 @@ func (c *NetService) SendPacket(connection *websocket.Conn, packet any) error {
 		return err
 	}
 
-	return connection.WriteMessage(websocket.TextMessage, bytes)
+	return connection.WriteMessage(websocket.BinaryMessage, bytes)
 }
 
 func (c *NetService) PacketToBytes(packet any) ([]byte, error) {
