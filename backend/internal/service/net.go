@@ -42,6 +42,17 @@ type ChangeGameStatePacket struct {
 	State GameState `json:"state"`
 }
 
+type PlayerJoinPacket struct {
+	Player Player `json:"player"`
+}
+
+type StartGamePacket struct {
+}
+
+type TickPacket struct {
+	Tick int `json:"tick"`
+}
+
 func (c *NetService) packetIdToPacket(packetId uint8) any {
 	switch packetId {
 	case 0:
@@ -52,21 +63,28 @@ func (c *NetService) packetIdToPacket(packetId uint8) any {
 		{
 			return &HostGamePacket{}
 		}
+	case 5:
+		{
+			return &StartGamePacket{}
+		}
 	}
-
 	return nil
 }
 
 func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 	switch packet.(type) {
-	case QuestionShowPacket:
-		return 2, nil // Changed to 2 since 0 and 1 are used for incoming packets
 	case ConnectPacket:
 		return 0, nil
 	case HostGamePacket:
 		return 1, nil
+	case QuestionShowPacket:
+		return 2, nil // Changed to 2 since 0 and 1 are used for incoming packets
 	case ChangeGameStatePacket:
 		return 3, nil
+	case PlayerJoinPacket:
+		return 4, nil
+	case TickPacket:
+		return 6, nil
 	}
 
 	return 0, errors.New("invalid packet type")
@@ -75,6 +93,15 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 func (c *NetService) getGameByCode(code string) *Game {
 	for _, game := range c.games {
 		if game.Code == code {
+			return game
+		}
+	}
+	return nil
+}
+
+func (c *NetService) getGameByHost(host *websocket.Conn) *Game {
+	for _, game := range c.games {
+		if game.Host == host {
 			return game
 		}
 	}
@@ -139,6 +166,16 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			c.SendPacket(con, ChangeGameStatePacket{
 				State: LobbyState,
 			})
+			break
+		}
+	case *StartGamePacket:
+		{
+			game := c.getGameByHost(con)
+			if game == nil {
+				return
+			}
+
+			game.Start()
 			break
 		}
 	}
