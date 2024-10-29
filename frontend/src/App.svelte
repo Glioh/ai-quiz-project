@@ -5,12 +5,13 @@
   import Button from './lib/Button.svelte'
   import QuizCard from './lib/QuizCard.svelte'
   import type { Quiz, QuizQuestion } from './model/quiz';
-  import { NetService, PacketTypes, type ChangeGameStatePacket } from './service/net';
+  import { GameState, NetService, PacketTypes, type ChangeGameStatePacket } from './service/net';
 
   let quizzes: {_id : string, name: string}[] = [];
   
   let currentQuestion: QuizQuestion | null = null;
   let state = -1;
+  let host = false;
   let netService = new NetService();
   netService.connect();
   netService.onPacket((packet: any) => {
@@ -57,6 +58,7 @@
   }
 
   function hostQuiz(quiz: any) {
+    host = true;
     netService.sendPacket({
       id: 1,
       quizId: quiz.id
@@ -88,6 +90,10 @@
     {/each}
     </div>
   {/if}
-{:else if state == 0}
-    <p>Lobby State</p>
+{:else if state == GameState.Lobby}
+{#if host}
+  <p>Lobby State</p>
+  {:else}
+  You have joined the game
+  {/if}
 {/if}

@@ -16,8 +16,6 @@ import (
 	"quiz.com/quiz/internal/service"
 )
 
-var quizCollection *mongo.Collection
-
 type App struct {
 	httpServer  *fiber.App
 	database    *mongo.Database
@@ -99,6 +97,8 @@ func main() {
 }
 
 // set up database using mongodb by connecting to the local mongodb server
+var quizCollection *mongo.Collection
+
 func setupDb() {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()

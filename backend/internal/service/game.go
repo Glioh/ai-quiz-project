@@ -1,4 +1,4 @@
-package game
+package service
 
 import (
 	"fmt"
@@ -27,25 +27,28 @@ const (
 
 // Game struct
 type Game struct {
-	Id      uuid.UUID
-	Quiz    entity.Quiz
-	Code    string
-	Players []Player
-
-	Host *websocket.Conn
+	Id         uuid.UUID
+	Quiz       entity.Quiz
+	Code       string
+	Players    []Player
+	Host       *websocket.Conn
+	netService *NetService
+	State      GameState
 }
 
 func generateCode() string {
 	return strconv.Itoa(100000 + rand.Intn(900000)) // Generates a random 4-digit code
 }
 
-func New(quiz entity.Quiz, host *websocket.Conn) Game {
+func newGame(quiz entity.Quiz, host *websocket.Conn, netService *NetService) Game {
 	return Game{
-		Id:      uuid.New(),
-		Quiz:    quiz,
-		Code:    generateCode(),
-		Players: []Player{},
-		Host:    host,
+		Id:         uuid.New(),
+		Quiz:       quiz,
+		Code:       generateCode(),
+		Players:    []Player{},
+		State:      LobbyState,
+		Host:       host,
+		netService: netService,
 	}
 }
 
@@ -68,5 +71,9 @@ func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
 	g.Players = append(g.Players, Player{
 		Name:       name,
 		Connection: connection,
+	})
+
+	g.netService.SendPacket(connection, ChangeGameStatePacket{
+		State: g.State,
 	})
 }

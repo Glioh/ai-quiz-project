@@ -8,13 +8,12 @@ import (
 	"github.com/gofiber/contrib/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"quiz.com/quiz/internal/entity"
-	"quiz.com/quiz/internal/game"
 )
 
 type NetService struct {
 	quizService *QuizService //\ might need to remove
 
-	games []*game.Game
+	games []*Game
 }
 
 // Net is a factory function that returns a new instance of the NetService struct.
@@ -22,7 +21,7 @@ func Net(quizService *QuizService) *NetService {
 	return &NetService{
 		quizService: quizService,
 
-		games: []*game.Game{},
+		games: []*Game{},
 	}
 }
 
@@ -40,7 +39,7 @@ type QuestionShowPacket struct {
 }
 
 type ChangeGameStatePacket struct {
-	State game.GameState `json:"state"`
+	State GameState `json:"state"`
 }
 
 func (c *NetService) packetIdToPacket(packetId uint8) any {
@@ -73,7 +72,7 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 	return 0, errors.New("invalid packet type")
 }
 
-func (c *NetService) getGameByCode(code string) *game.Game {
+func (c *NetService) getGameByCode(code string) *Game {
 	for _, game := range c.games {
 		if game.Code == code {
 			return game
@@ -133,12 +132,12 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			if quiz == nil {
 				return
 			}
-			newGame := game.New(*quiz, con)
-			fmt.Printf("New game created with code: %s\n", newGame.Code)
-			c.games = append(c.games, &newGame)
+			game := newGame(*quiz, con, c)
+			fmt.Printf("New game created with code: %s\n", game.Code)
+			c.games = append(c.games, &game)
 
 			c.SendPacket(con, ChangeGameStatePacket{
-				State: game.LobbyState,
+				State: LobbyState,
 			})
 			break
 		}
