@@ -39,6 +39,10 @@ type QuestionShowPacket struct {
 	Question entity.QuizQuestion `json:"question"`
 }
 
+type ChangeGameStatePacket struct {
+	State game.GameState `json:"state"`
+}
+
 func (c *NetService) packetIdToPacket(packetId uint8) any {
 	switch packetId {
 	case 0:
@@ -62,6 +66,8 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 		return 0, nil
 	case HostGamePacket:
 		return 1, nil
+	case ChangeGameStatePacket:
+		return 3, nil
 	}
 
 	return 0, errors.New("invalid packet type")
@@ -130,6 +136,10 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			newGame := game.New(*quiz, con)
 			fmt.Printf("New game created with code: %s\n", newGame.Code)
 			c.games = append(c.games, &newGame)
+
+			c.SendPacket(con, ChangeGameStatePacket{
+				State: game.LobbyState,
+			})
 			break
 		}
 	}

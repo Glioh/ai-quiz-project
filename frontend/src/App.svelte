@@ -4,12 +4,13 @@
   import Counter from './lib/Counter.svelte'
   import Button from './lib/Button.svelte'
   import QuizCard from './lib/QuizCard.svelte'
-    import type { Quiz, QuizQuestion } from './model/quiz';
-    import { NetService } from './service/net';
+  import type { Quiz, QuizQuestion } from './model/quiz';
+  import { NetService, PacketTypes, type ChangeGameStatePacket } from './service/net';
 
   let quizzes: {_id : string, name: string}[] = [];
   
   let currentQuestion: QuizQuestion | null = null;
+  let state = -1;
   let netService = new NetService();
   netService.connect();
   netService.onPacket((packet: any) => {
@@ -17,6 +18,12 @@
     switch(packet.id){
       case 2:{
         currentQuestion = packet.question;
+        break;
+      }
+
+      case PacketTypes.ChangeGameState: {
+        let data = packet as ChangeGameStatePacket
+        state = data.state;
         break;
       }
     }
@@ -57,72 +64,30 @@
   }
 </script>
 
-<button on:click={getQuizzes}>Get Quizzes</button>
-Message: {msg}  
+{#if state == -1}
+  <Button on:click={getQuizzes}>Get Quizzes</Button>
+  Message: {msg}
 
-<!-- Iterating through quizzes as quiz using js -->
-<div>
-{#each quizzes as quiz}
-  <QuizCard on:host={() => hostQuiz(quiz)} quiz={quiz} />
-{/each}
-</div>
-
-<input bind:value={code} class="border" type="text" placeholder="Game Code" />
-<input bind:value={name} class="border" type="text" placeholder="Name" />
-
-{#if currentQuestion != null}
-  <h2 class="text-4x1 font-bold mt-8">{currentQuestion.name}</h2>
-  <div class="flex">
-      {#each currentQuestion.choices as choice}
-        <div class="flex-1 bg-blue-400 text-center font-bold text-2x1 text-white justify-center">
-          {choice.name}
-        </div>
-      {/each}
-  </div>
-{/if}
-
-<input bind:value={code} class="border" type="text" placeholder="Game Code" />
-<Button on:click={connect}>Join Game</Button>
-
-
-<main>
   <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
+    {#each quizzes as quiz}
+      <QuizCard on:host={() => hostQuiz(quiz)} quiz={quiz} />
+    {/each}
   </div>
 
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
+  <input bind:value={code} class="border" type="text" placeholder="Game Code" />
+  <input bind:value={name} class="border" type="text" placeholder="Name" />
+  <Button on:click={connect}>Join Game</Button>
 
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>
+  {#if currentQuestion != null}
+    <h2 class="text-4x1 font-bold mt-8">{currentQuestion.name}</h2>
+    <div class="flex">
+    {#each currentQuestion.choices as choice}
+      <div class="flex-1 bg-blue-400 text-center font-bold text-2x1 text-white justify-center">
+        {choice.name}
+      </div>
+    {/each}
+    </div>
+  {/if}
+{:else if state == 0}
+    <p>Lobby State</p>
+{/if}

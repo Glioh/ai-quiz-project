@@ -16,6 +16,15 @@ type Player struct {
 	Connection *websocket.Conn
 }
 
+type GameState int
+
+const (
+	LobbyState GameState = iota
+	PlayState
+	RevealState
+	EndState
+)
+
 // Game struct
 type Game struct {
 	Id      uuid.UUID
