@@ -39,12 +39,13 @@
 
   let code ="";
   let msg = "";
+  let name = "";
 
   function connect() {
     netService.sendPacket({
       id: 0,
-      code: "1234",
-      name: "coolname555"
+      code: code,
+      name: name
     });
   }
 
@@ -65,6 +66,9 @@ Message: {msg}
   <QuizCard on:host={() => hostQuiz(quiz)} quiz={quiz} />
 {/each}
 </div>
+
+<input bind:value={code} class="border" type="text" placeholder="Game Code" />
+<input bind:value={name} class="border" type="text" placeholder="Name" />
 
 {#if currentQuestion != null}
   <h2 class="text-4x1 font-bold mt-8">{currentQuestion.name}</h2>

@@ -4,24 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/contrib/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"quiz.com/quiz/internal/entity"
+	"quiz.com/quiz/internal/game"
 )
 
 type NetService struct {
 	quizService *QuizService //\ might need to remove
 
-	host *websocket.Conn
-
-	tick int
+	games []*game.Game
 }
 
 // Net is a factory function that returns a new instance of the NetService struct.
 func Net(quizService *QuizService) *NetService {
 	return &NetService{
 		quizService: quizService,
+
+		games: []*game.Game{},
 	}
 }
 
@@ -66,10 +67,17 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 	return 0, errors.New("invalid packet type")
 }
 
+func (c *NetService) getGameByCode(code string) *game.Game {
+	for _, game := range c.games {
+		if game.Code == code {
+			return game
+		}
+	}
+	return nil
+}
+
 // The OnIncomingMessage method is called when a message is received from a websocket connection.
 func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) {
-	// Add debug logging
-	fmt.Printf("Received message: %v\n", msg)
 
 	if len(msg) < 2 {
 		fmt.Println("Message too short")
@@ -78,8 +86,6 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 
 	packetId := msg[0]
 	data := msg[1:]
-
-	fmt.Printf("Packet ID: %d, Data: %v\n", packetId, string(data))
 
 	packet := c.packetIdToPacket(packetId)
 	if packet == nil {
@@ -96,28 +102,34 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 	switch data := packet.(type) {
 	case *ConnectPacket:
 		{
-			fmt.Printf("Connect packet received: Name=%s, Code=%s\n", data.Name, data.Code)
+			game := c.getGameByCode(data.Code)
+			if game == nil {
+				return
+			}
+
+			game.OnPlayerJoin(data.Name, con)
 			break
 		}
 	case *HostGamePacket:
 		{
-			fmt.Printf("Host game packet received: QuizId=%s\n", data.QuizId)
-			go func() {
-				time.Sleep(time.Second * 5)
-				c.SendPacket(con, QuestionShowPacket{
-					Question: entity.QuizQuestion{
-						Name: "What is 2+2",
-						Choices: []entity.QuizChoice{
-							{
-								Name: "4",
-							},
-							{
-								Name: "9",
-							},
-						},
-					},
-				})
-			}()
+			quizId, err := primitive.ObjectIDFromHex(data.QuizId)
+			if err != nil {
+				fmt.Printf("Invalid Quiz ID: %v\n", err)
+				return
+			}
+
+			quiz, err := c.quizService.quizCollection.GetQuizById(quizId)
+			if err != nil {
+				fmt.Printf("Error fetching quiz: %v\n", err)
+				return
+			}
+
+			if quiz == nil {
+				return
+			}
+			newGame := game.New(*quiz, con)
+			fmt.Printf("New game created with code: %s\n", newGame.Code)
+			c.games = append(c.games, &newGame)
 			break
 		}
 	}
