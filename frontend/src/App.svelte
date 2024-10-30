@@ -1,9 +1,12 @@
 <script lang="ts">
+    import Router from 'svelte-spa-router';
   import Button from './lib/Button.svelte'
   import QuizCard from './lib/QuizCard.svelte'
   import type { Player, Quiz, QuizQuestion } from './model/quiz';
+  import PlayerView from './views/player/PlayerView.svelte';
+  import HostView from './views/host/HostView.svelte';
   import { GameState, NetService, PacketTypes, type ChangeGameStatePacket, type PlayerJoinPacket, type TickPacket } from './service/net';
-
+/*
   let quizzes: {_id : string, name: string}[] = [];
   let currentQuestion: QuizQuestion | null = null;
   let state = -1;
@@ -86,9 +89,17 @@
       quizId: quiz.id
     });
   }
+*/
+
+  let routes= {
+    '/': PlayerView,
+    '/host': HostView
+  };
 </script>
 
-{#if state == -1}
+<Router {routes} />
+
+<!-- {#if state == -1}
   <Button on:click={getQuizzes}>Get Quizzes</Button>
   Message: {msg}
 
@@ -138,4 +149,4 @@
   {:else}
   Press Correct Answer
   {/if}
-{/if}
+{/if} -->

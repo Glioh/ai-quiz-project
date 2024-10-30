@@ -17,16 +17,50 @@ export enum GameState {
     End
 }
 
-export interface ChangeGameStatePacket {
+export interface Packet {
+    id: PacketTypes;
+}
+
+export interface HostGamePacket extends Packet {
+    quizId: string;
+}
+
+export interface ChangeGameStatePacket extends Packet {
     state: GameState;
 }
 
-export interface PlayerJoinPacket {
+export interface PlayerJoinPacket extends Packet {
     player: Player;
 }
 
-export interface TickPacket {
+export interface TickPacket extends Packet {
     tick: number;
+}
+
+export interface PlayerDisconnectPacket extends Packet {
+    playerId: string;
+}
+
+export interface ConnectPacket extends Packet {
+    code: string;
+    name: string;
+}
+
+export interface QuestionAnswerPacket extends Packet {
+    question: number;
+}
+
+export interface PlayerRevealPacket extends Packet {
+    points: number;
+}
+
+export interface LeaderboardEntry {
+    name: string;
+    points: number;
+}
+
+export interface LeaderboardPacket extends Packet {
+    points: LeaderboardEntry[];
 }
 
 export class NetService {
@@ -60,11 +94,11 @@ export class NetService {
         }
     }
 
-    onPacket(callback: (packet: any) => void) {
+    onPacket(callback: (packet: Packet) => void) {
         this.onPacketCallback = callback;
     }
 
-    sendPacket(packet: any) {
+    sendPacket(packet: Packet) {
         const packetId = packet.id;
         const packetData = JSON.stringify(packet, (key, value) => 
             key == "id" ? undefined : value
