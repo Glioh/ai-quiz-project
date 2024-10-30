@@ -17,6 +17,8 @@
     let views: Record<GameState, any> = {
         [GameState.Lobby]: HostLobbyView,
         [GameState.Play]: HostPlayView,
+        [GameState.Reveal]: undefined,
+        [GameState.End]: undefined
     };
 </script>
 

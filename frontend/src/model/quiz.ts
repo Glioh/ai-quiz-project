@@ -1,6 +1,3 @@
-// Objective: Define the interfaces for the quiz model.
-
-
 export interface Quiz {
     id: string;
     name: string;
@@ -13,16 +10,16 @@ export interface Player {
 }
 
 export interface QuizQuestion {
-    name: any;
     id: string;
-    question: string;
+    name: string;
+    time: number;
     choices: QuizChoice[];
 }
 
 export interface QuizChoice {
-    [x: string]: any;
-    text: any;
     id: string;
-    choice: string;
+    name: string;
     correct: boolean;
 }
+
+export const COLORS = ["bg-pink-400", "bg-blue-400", "bg-yellow-400", "bg-purple-400"];

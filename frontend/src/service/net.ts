@@ -1,4 +1,4 @@
-import type { Player } from "../model/quiz";
+import type { Player, QuizQuestion } from "../model/quiz";
 
 export enum PacketTypes {
     Connect,
@@ -27,6 +27,10 @@ export interface HostGamePacket extends Packet {
 
 export interface ChangeGameStatePacket extends Packet {
     state: GameState;
+}
+
+export interface QuestionShowPacket extends Packet {
+    question: QuizQuestion;
 }
 
 export interface PlayerJoinPacket extends Packet {
