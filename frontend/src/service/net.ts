@@ -7,7 +7,8 @@ export enum PacketTypes {
     ChangeGameState,
     PlayerJoin,
     StartGame,
-    Tick
+    Tick,
+    Answer
 }
 
 export enum GameState {

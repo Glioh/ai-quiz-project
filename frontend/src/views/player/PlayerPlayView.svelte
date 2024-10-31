@@ -5,7 +5,9 @@
     
     export let game: PlayerGame;
 
-    function onClick(i: number) {}
+    function onClick(i: number) {
+        game.answer(i);
+    }
 </script>
 
 <div class="flex flex-wrap w-full min-h-screen">

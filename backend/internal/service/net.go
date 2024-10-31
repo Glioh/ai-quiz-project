@@ -53,6 +53,10 @@ type TickPacket struct {
 	Tick int `json:"tick"`
 }
 
+type QuestionAnswerPacket struct {
+	Question int `json:"question"`
+}
+
 func (c *NetService) packetIdToPacket(packetId uint8) any {
 	switch packetId {
 	case 0:
@@ -66,6 +70,10 @@ func (c *NetService) packetIdToPacket(packetId uint8) any {
 	case 5:
 		{
 			return &StartGamePacket{}
+		}
+	case 7:
+		{
+			return &QuestionAnswerPacket{}
 		}
 	}
 	return nil
@@ -106,6 +114,17 @@ func (c *NetService) getGameByHost(host *websocket.Conn) *Game {
 		}
 	}
 	return nil
+}
+
+func (c *NetService) getGameByPlayer(con *websocket.Conn) (*Game, *Player) {
+	for _, game := range c.games {
+		for _, player := range game.Players {
+			if player.Connection == con {
+				return game, player
+			}
+		}
+	}
+	return nil, nil
 }
 
 // The OnIncomingMessage method is called when a message is received from a websocket connection.
@@ -176,6 +195,16 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			}
 
 			game.Start()
+			break
+		}
+	case *QuestionAnswerPacket:
+		{
+			game, player := c.getGameByPlayer(con)
+			if game == nil {
+				return
+			}
+
+			game.OnPlayerAnswer(data.Question, player)
 			break
 		}
 	}

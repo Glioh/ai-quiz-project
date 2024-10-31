@@ -15,6 +15,7 @@ type Player struct {
 	Id         uuid.UUID       `json:"id"`
 	Name       string          `json:"name"`
 	Connection *websocket.Conn `json:"-"`
+	Answered   bool            `json:"-"`
 }
 
 type GameState int
@@ -28,10 +29,11 @@ const (
 
 // Game struct
 type Game struct {
-	Id         uuid.UUID
-	Quiz       entity.Quiz
-	Code       string
-	Players    []Player
+	Id      uuid.UUID
+	Quiz    entity.Quiz
+	Code    string
+	Players []*Player
+
 	Time       int
 	Host       *websocket.Conn
 	netService *NetService
@@ -47,7 +49,7 @@ func newGame(quiz entity.Quiz, host *websocket.Conn, netService *NetService) Gam
 		Id:         uuid.New(),
 		Quiz:       quiz,
 		Code:       generateCode(),
-		Players:    []Player{},
+		Players:    []*Player{},
 		State:      LobbyState,
 		Host:       host,
 		Time:       60,
@@ -124,20 +126,38 @@ func (g *Game) BroadcastPacket(packet any, includeHost bool) error {
 func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
 	fmt.Println("Player", name, "joined the game")
 
-	g.Players = append(g.Players, Player{
+	player := Player{
 		Id:         uuid.New(),
 		Name:       name,
 		Connection: connection,
-	})
+	}
+	g.Players = append(g.Players, &player)
 
 	g.netService.SendPacket(connection, ChangeGameStatePacket{
 		State: g.State,
 	})
 
 	g.netService.SendPacket(g.Host, PlayerJoinPacket{
-		Player: Player{
-			Name:       name,
-			Connection: connection,
-		},
+		Player: player,
 	})
+}
+
+func (g *Game) getAnsweredPlayers() []*Player {
+	players := []*Player{}
+
+	for _, player := range g.Players {
+		if player.Answered {
+			players = append(players, player)
+		}
+	}
+
+	return players
+}
+
+func (g *Game) OnPlayerAnswer(choice int, player *Player) {
+	player.Answered = true
+
+	if len(g.getAnsweredPlayers()) == len(g.Players) {
+		fmt.Println("All players answered")
+	}
 }
