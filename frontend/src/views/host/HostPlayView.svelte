@@ -1,7 +1,15 @@
 <script lang="ts">
-   import QuizChoiceCard from "../../lib/play/QuizChoiceCard.svelte";
-    import { COLORS } from "../../model/quiz";
-   import { type HostGame, tick, currentQuestion, state } from "../../service/host/host";
+    import QuizChoiceCard from "../../lib/play/QuizChoiceCard.svelte";
+    import { COLORS, type QuizChoice } from "../../model/quiz";
+    import { type HostGame, tick, currentQuestion, state } from "../../service/host/host";
+    import { GameState } from "../../service/net";
+
+    function getCardColor(choice: QuizChoice, state: GameState, defaultColor: string){
+        if(state != GameState.Reveal)
+            return defaultColor
+        return choice.correct ? "bg-green-400" : "bg-red-400"
+    }
+
 
     export let game: HostGame;
 </script>
@@ -27,7 +35,7 @@
         </div>
         <div class="flex flex-wrap w-full h-96">
             {#each COLORS as color, i}
-                <QuizChoiceCard {color}>
+                <QuizChoiceCard color={getCardColor($currentQuestion.choices[i], $state, color)}>
                     <p class="pl-14">{$currentQuestion.choices[i].name}</p>
                 </QuizChoiceCard>
             {/each}

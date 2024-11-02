@@ -96,6 +96,20 @@ func (g *Game) Tick() {
 	g.netService.SendPacket(g.Host, TickPacket{
 		Tick: g.Time,
 	})
+
+	if g.Time == 0 {
+		switch g.State {
+		case PlayState:
+			{
+				g.ChangeState(RevealState)
+				break
+			}
+		case RevealState:
+			{
+				break
+			}
+		}
+	}
 }
 
 func (g *Game) ChangeState(state GameState) {
@@ -158,6 +172,6 @@ func (g *Game) OnPlayerAnswer(choice int, player *Player) {
 	player.Answered = true
 
 	if len(g.getAnsweredPlayers()) == len(g.Players) {
-		fmt.Println("All players answered")
+		g.ChangeState(RevealState)
 	}
 }
