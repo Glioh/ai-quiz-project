@@ -29,10 +29,11 @@ const (
 
 // Game struct
 type Game struct {
-	Id      uuid.UUID
-	Quiz    entity.Quiz
-	Code    string
-	Players []*Player
+	Id              uuid.UUID
+	Quiz            entity.Quiz
+	CurrentQuestion int
+	Code            string
+	Players         []*Player
 
 	Time       int
 	Host       *websocket.Conn
@@ -46,42 +47,21 @@ func generateCode() string {
 
 func newGame(quiz entity.Quiz, host *websocket.Conn, netService *NetService) Game {
 	return Game{
-		Id:         uuid.New(),
-		Quiz:       quiz,
-		Code:       generateCode(),
-		Players:    []*Player{},
-		State:      LobbyState,
-		Host:       host,
-		Time:       60,
-		netService: netService,
+		Id:              uuid.New(),
+		Quiz:            quiz,
+		Code:            generateCode(),
+		Players:         []*Player{},
+		State:           LobbyState,
+		CurrentQuestion: -1,
+		Host:            host,
+		Time:            60,
+		netService:      netService,
 	}
 }
 
 func (g *Game) Start() {
 	g.ChangeState(PlayState)
-	g.netService.SendPacket(g.Host, QuestionShowPacket{
-		Question: entity.QuizQuestion{
-			Id:   "",
-			Name: "What is 2+2",
-			Choices: []entity.QuizChoice{
-				{
-					Id:   "a",
-					Name: "4",
-				},
-				{
-					Id:   "b",
-					Name: "5",
-				},
-				{
-					Id:   "c",
-					Name: "6",
-				},
-				{
-					Id:   "d",
-					Name: "7",
-				}},
-		},
-	})
+	g.NextQuestion()
 
 	go func() {
 		for {
@@ -89,6 +69,23 @@ func (g *Game) Start() {
 			time.Sleep(time.Second)
 		}
 	}()
+}
+
+func (g *Game) NextQuestion() {
+	g.CurrentQuestion++
+
+	g.ChangeState(PlayState)
+	g.Time = 60
+
+	g.netService.SendPacket(g.Host, QuestionShowPacket{
+		Question: g.Quiz.Questions[g.CurrentQuestion],
+	})
+
+}
+
+func (g *Game) Reveal() {
+	g.Time = 10
+	g.ChangeState(RevealState)
 }
 
 func (g *Game) Tick() {
@@ -101,11 +98,12 @@ func (g *Game) Tick() {
 		switch g.State {
 		case PlayState:
 			{
-				g.ChangeState(RevealState)
+				g.Reveal()
 				break
 			}
 		case RevealState:
 			{
+				g.NextQuestion()
 				break
 			}
 		}
@@ -172,6 +170,6 @@ func (g *Game) OnPlayerAnswer(choice int, player *Player) {
 	player.Answered = true
 
 	if len(g.getAnsweredPlayers()) == len(g.Players) {
-		g.ChangeState(RevealState)
+		g.Reveal()
 	}
 }
