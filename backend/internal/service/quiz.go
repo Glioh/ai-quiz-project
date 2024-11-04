@@ -18,6 +18,21 @@ func Quiz(quizCollection *collection.QuizCollection) *QuizService {
 	}
 }
 
+func (s QuizService) CreateQuiz(name string) (*entity.Quiz, error) {
+	quiz := entity.Quiz{
+		Id:        primitive.NewObjectID(),
+		Name:      name,
+		Questions: []entity.QuizQuestion{},
+	}
+
+	err := s.quizCollection.InsertQuiz(quiz)
+	if err != nil {
+		return nil, err
+	}
+
+	return &quiz, nil
+}
+
 func (s QuizService) GetQuizById(id primitive.ObjectID) (*entity.Quiz, error) {
 	return s.quizCollection.GetQuizById(id)
 }

@@ -41,6 +41,27 @@ type UpdateQuizRequest struct {
 	Questions []entity.QuizQuestion `json:"questions"`
 }
 
+func (c *QuizController) CreateQuiz(ctx *fiber.Ctx) error {
+	var body struct {
+		Name string `json:"name"`
+	}
+
+	if err := ctx.BodyParser(&body); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	quiz, err := c.quizService.CreateQuiz(body.Name)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to create quiz",
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(quiz)
+}
+
 func (c QuizController) UpdateQuizById(ctx *fiber.Ctx) error {
 
 	quizIdStr := ctx.Params("quizId")

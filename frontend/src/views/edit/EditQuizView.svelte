@@ -27,6 +27,7 @@
         if (quiz == null) return;
 
         await apiService.saveQuiz(quiz.id, quiz);
+        window.location.href = "/#/host"; // Added navigation
     }
 </script>
 

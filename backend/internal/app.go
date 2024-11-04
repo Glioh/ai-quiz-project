@@ -40,6 +40,7 @@ func (a *App) setupHttp() {
 	app.Get("/api/quizzes", quizController.GetQuizzes)
 	app.Get("/api/quizzes/:quizId", quizController.GetQuizById)
 	app.Put("/api/quizzes/:quizId", quizController.UpdateQuizById)
+	app.Post("/api/quizzes", quizController.CreateQuiz)
 
 	wsController := controller.Ws(a.netService)
 	app.Get("/ws", websocket.New(wsController.Ws))

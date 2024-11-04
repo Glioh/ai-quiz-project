@@ -26,9 +26,10 @@
                     <span class="text-3xl">{$tick}</span>
                 </Clock>
                 <img
-                    alt="center"
-                    class="max-w-[500px]"
-                />
+					src="https://placehold.co/500x250"
+					alt="center"
+					class="max-w-[500px]"
+				/>
                 <div class="w-24"></div>
             </div>
         </div>
