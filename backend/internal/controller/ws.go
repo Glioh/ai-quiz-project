@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"log"
-
 	"github.com/gofiber/contrib/websocket"
 	"quiz.com/quiz/internal/service"
 )
@@ -26,7 +24,7 @@ func (c WebsocketController) Ws(con *websocket.Conn) {
 
 	for {
 		if mt, msg, err = con.ReadMessage(); err != nil {
-			log.Println("read:", err)
+			c.netService.OnDisconnect(con)
 			break
 		}
 

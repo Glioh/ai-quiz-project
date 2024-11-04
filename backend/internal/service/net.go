@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/contrib/websocket"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"quiz.com/quiz/internal/entity"
 )
@@ -47,6 +48,10 @@ type PlayerJoinPacket struct {
 }
 
 type StartGamePacket struct {
+}
+
+type PlayerDisconnectPacket struct {
+	PlayerId uuid.UUID `json:"playerId"`
 }
 
 type TickPacket struct {
@@ -105,6 +110,8 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 		return 8, nil
 	case LeaderboardPacket:
 		return 9, nil
+	case PlayerDisconnectPacket:
+		return 10, nil
 	}
 
 	return 0, errors.New("invalid packet type")
@@ -137,6 +144,15 @@ func (c *NetService) getGameByPlayer(con *websocket.Conn) (*Game, *Player) {
 		}
 	}
 	return nil, nil
+}
+
+func (c *NetService) OnDisconnect(con *websocket.Conn) {
+	game, player := c.getGameByPlayer(con)
+	if game == nil {
+		return
+	}
+
+	game.OnPlayerDisconnect(player)
 }
 
 // The OnIncomingMessage method is called when a message is received from a websocket connection.
@@ -194,8 +210,12 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			fmt.Printf("New game created with code: %s\n", game.Code)
 			c.games = append(c.games, &game)
 
+			c.SendPacket(con, HostGamePacket{
+				QuizId: game.Code,
+			})
+
 			c.SendPacket(con, ChangeGameStatePacket{
-				State: LobbyState,
+				State: game.State,
 			})
 			break
 		}

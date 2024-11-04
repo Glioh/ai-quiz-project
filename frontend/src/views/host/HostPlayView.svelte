@@ -1,5 +1,6 @@
 <script lang="ts">
     import QuizChoiceCard from "../../lib/play/QuizChoiceCard.svelte";
+    import Clock from "../../lib/Clock.svelte";
     import { COLORS, type QuizChoice } from "../../model/quiz";
     import { type HostGame, tick, currentQuestion, state } from "../../service/host/host";
     import { GameState } from "../../service/net";
@@ -21,11 +22,9 @@
         </div>
         <div class="flex-1 flex flex-col justify-center pl-4">
             <div class="flex justify-between items-center">
-                <div
-                    class="bg-purple-500 text-white text-3xl p-4 rounded-lg mb-4"
-                >
-                    {$tick}
-                </div>
+                <Clock>
+                    <span class="text-3xl">{$tick}</span>
+                </Clock>
                 <img
                     alt="center"
                     class="max-w-[500px]"

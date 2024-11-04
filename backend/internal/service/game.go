@@ -228,6 +228,22 @@ func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
 	})
 }
 
+func (g *Game) OnPlayerDisconnect(player *Player) {
+	filter := []*Player{}
+	for _, p := range g.Players {
+		if p.Id == player.Id {
+			continue
+		}
+		filter = append(filter, p)
+	}
+
+	fmt.Println(player.Name, "has left the game.")
+	g.Players = filter
+	g.netService.SendPacket(g.Host, PlayerDisconnectPacket{
+		PlayerId: player.Id,
+	})
+}
+
 func (g *Game) getAnsweredPlayers() []*Player {
 	players := []*Player{}
 

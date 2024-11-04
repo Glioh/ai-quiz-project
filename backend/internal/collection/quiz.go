@@ -9,7 +9,6 @@ import (
 	"quiz.com/quiz/internal/entity"
 )
 
-// Struct wraps MongoDB collection. Acts as a pointer to the MongoDB quizzes collection-where data is stored
 type QuizCollection struct {
 	collection *mongo.Collection
 }
@@ -20,13 +19,11 @@ func Quiz(collection *mongo.Collection) *QuizCollection {
 	}
 }
 
-// Function to insert a new quiz into the MongoDB collection
 func (c QuizCollection) InsertQuiz(quiz entity.Quiz) error {
 	_, err := c.collection.InsertOne(context.Background(), quiz)
 	return err
 }
 
-// Function retrieves all quizzes from the MongoDB collection
 func (c QuizCollection) GetQuizzes() ([]entity.Quiz, error) {
 	cursor, err := c.collection.Find(context.Background(), bson.M{})
 	if err != nil {
@@ -42,7 +39,6 @@ func (c QuizCollection) GetQuizzes() ([]entity.Quiz, error) {
 	return quiz, nil
 }
 
-// Retrieves a single quiz by its MongoDB ObjectID
 func (c QuizCollection) GetQuizById(id primitive.ObjectID) (*entity.Quiz, error) {
 	result := c.collection.FindOne(context.Background(), bson.M{"_id": id})
 
@@ -53,4 +49,14 @@ func (c QuizCollection) GetQuizById(id primitive.ObjectID) (*entity.Quiz, error)
 	}
 
 	return &quiz, nil
+}
+
+func (c QuizCollection) UpdateQuiz(quiz entity.Quiz) error {
+	_, err := c.collection.UpdateOne(context.Background(), bson.M{
+		"_id": quiz.Id,
+	}, bson.M{
+		"$set": quiz,
+	})
+
+	return err
 }

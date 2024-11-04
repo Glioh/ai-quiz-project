@@ -1,6 +1,7 @@
 <script lang="ts">
     import QuizCard from '../../lib/QuizCard.svelte';
 import type{Quiz} from '../../model/quiz';
+    import { apiService } from '../../service/api';
 
     let quizzes: Quiz[] = [];
 
@@ -16,7 +17,7 @@ import type{Quiz} from '../../model/quiz';
     }
 
     (async function() {
-        quizzes = await getQuizzes();
+        quizzes = await apiService.getQuizzes();
     })();
 </script>
 

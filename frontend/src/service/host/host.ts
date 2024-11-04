@@ -33,6 +33,10 @@ export class HostGame {
 
     onPacket(packet: Packet){
         switch(packet.id){
+            case PacketTypes.HostGame:{
+                let data = packet as HostGamePacket;
+                gameCode.set(data.quizId);
+            }
             case PacketTypes.ChangeGameState:{
                 let data = packet as ChangeGameStatePacket;
                 state.set(data.state);
@@ -57,6 +61,11 @@ export class HostGame {
             case PacketTypes.Leaderboard:{
                 let data = packet as LeaderboardPacket;
                 leaderboard.set(data.points);
+                break;
+            }
+            case PacketTypes.PlayerDisconnect:{
+                let data = packet as PlayerDisconnectPacket;
+                players.update(p => p.filter(player => player.id !== data.playerId));
                 break;
             }
         }
