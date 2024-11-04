@@ -57,6 +57,14 @@ type QuestionAnswerPacket struct {
 	Question int `json:"question"`
 }
 
+type PlayerRevealPacket struct {
+	Points int `json:"points"`
+}
+
+type LeaderboardPacket struct {
+	Points []LeaderboardEntry `json:"points"`
+}
+
 func (c *NetService) packetIdToPacket(packetId uint8) any {
 	switch packetId {
 	case 0:
@@ -93,6 +101,10 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 		return 4, nil
 	case TickPacket:
 		return 6, nil
+	case PlayerRevealPacket:
+		return 8, nil
+	case LeaderboardPacket:
+		return 9, nil
 	}
 
 	return 0, errors.New("invalid packet type")
@@ -194,7 +206,7 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 				return
 			}
 
-			game.Start()
+			game.StartOrSkjp()
 			break
 		}
 	case *QuestionAnswerPacket:

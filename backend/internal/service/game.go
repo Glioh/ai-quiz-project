@@ -2,7 +2,9 @@ package service
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
+	"sort"
 	"strconv"
 	"time"
 
@@ -12,10 +14,12 @@ import (
 )
 
 type Player struct {
-	Id         uuid.UUID       `json:"id"`
-	Name       string          `json:"name"`
-	Connection *websocket.Conn `json:"-"`
-	Answered   bool            `json:"-"`
+	Id                uuid.UUID       `json:"id"`
+	Name              string          `json:"name"`
+	Connection        *websocket.Conn `json:"-"`
+	Points            int             `json:"-"`
+	LastAwardedPoints int             `json:"-"`
+	Answered          bool            `json:"-"`
 }
 
 type GameState int
@@ -23,9 +27,15 @@ type GameState int
 const (
 	LobbyState GameState = iota
 	PlayState
+	IntermissionState
 	RevealState
 	EndState
 )
+
+type LeaderboardEntry struct {
+	Name   string `json:"name"`
+	Points int    `json:"points"`
+}
 
 // Game struct
 type Game struct {
@@ -34,6 +44,7 @@ type Game struct {
 	CurrentQuestion int
 	Code            string
 	Players         []*Player
+	Ended           bool
 
 	Time       int
 	Host       *websocket.Conn
@@ -59,32 +70,65 @@ func newGame(quiz entity.Quiz, host *websocket.Conn, netService *NetService) Gam
 	}
 }
 
+func (g *Game) StartOrSkjp() {
+	if g.State == LobbyState {
+		g.Start()
+	} else {
+		g.NextQuestion()
+	}
+}
+
 func (g *Game) Start() {
 	g.ChangeState(PlayState)
 	g.NextQuestion()
 
 	go func() {
 		for {
+			if g.Ended {
+				return
+			}
 			g.Tick()
 			time.Sleep(time.Second)
 		}
 	}()
 }
 
+func (g *Game) ResetPlayerAnswerStates() {
+	for _, player := range g.Players {
+		player.Answered = false
+	}
+}
+
+func (g *Game) End() {
+	g.Ended = true
+	g.ChangeState(EndState)
+}
+
 func (g *Game) NextQuestion() {
 	g.CurrentQuestion++
 
+	if g.CurrentQuestion >= len(g.Quiz.Questions) {
+		g.End()
+		return
+	}
+
+	g.ResetPlayerAnswerStates()
 	g.ChangeState(PlayState)
 	g.Time = 60
 
 	g.netService.SendPacket(g.Host, QuestionShowPacket{
-		Question: g.Quiz.Questions[g.CurrentQuestion],
+		Question: g.getCurrentQuestion(),
 	})
 
 }
 
 func (g *Game) Reveal() {
-	g.Time = 10
+	g.Time = 8
+	for _, player := range g.Players {
+		g.netService.SendPacket(player.Connection, PlayerRevealPacket{
+			Points: player.LastAwardedPoints,
+		})
+	}
 	g.ChangeState(RevealState)
 }
 
@@ -103,11 +147,41 @@ func (g *Game) Tick() {
 			}
 		case RevealState:
 			{
+
+				break
+			}
+		case IntermissionState:
+			{
 				g.NextQuestion()
 				break
 			}
 		}
 	}
+}
+
+func (g *Game) Intermission() {
+	g.Time = 30
+	g.ChangeState(IntermissionState)
+	g.netService.SendPacket(g.Host, LeaderboardPacket{
+		Points: g.getLeaderboard(),
+	})
+}
+
+func (g *Game) getLeaderboard() []LeaderboardEntry {
+	sort.Slice(g.Players, func(i, j int) bool {
+		return g.Players[i].Points > g.Players[j].Points
+	})
+
+	leaderboard := []LeaderboardEntry{}
+	for i := 0; i < int(math.Min(3, float64(len(g.Players)))); i++ {
+		player := g.Players[i]
+		leaderboard = append(leaderboard, LeaderboardEntry{
+			Name:   player.Name,
+			Points: player.Points,
+		})
+	}
+
+	return leaderboard
 }
 
 func (g *Game) ChangeState(state GameState) {
@@ -166,7 +240,35 @@ func (g *Game) getAnsweredPlayers() []*Player {
 	return players
 }
 
+func (g *Game) getCurrentQuestion() entity.QuizQuestion {
+	return g.Quiz.Questions[g.CurrentQuestion]
+}
+
+func (g *Game) isCorrectChoice(choiceIndex int) bool {
+	choices := g.getCurrentQuestion().Choices
+	if choiceIndex < 0 || choiceIndex >= len(choices) {
+		return false
+	}
+
+	return choices[choiceIndex].Correct
+}
+
+func (g *Game) getPointsReward() int {
+	answered := len(g.getAnsweredPlayers())
+	orderReward := 5000 - (1000 * math.Min(4, float64(answered)))
+	timeReward := g.Time * (1000 / 60)
+
+	return int(orderReward) + timeReward
+}
+
 func (g *Game) OnPlayerAnswer(choice int, player *Player) {
+	if g.isCorrectChoice(choice) {
+		player.LastAwardedPoints = g.getPointsReward()
+		player.Points += player.LastAwardedPoints
+	} else {
+		player.LastAwardedPoints = 0
+	}
+
 	player.Answered = true
 
 	if len(g.getAnsweredPlayers()) == len(g.Players) {

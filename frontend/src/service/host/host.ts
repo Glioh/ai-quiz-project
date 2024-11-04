@@ -1,10 +1,12 @@
 import { writable, type Writable } from "svelte/store";
-import { NetService, PacketTypes, type Packet, type HostGamePacket, type PlayerJoinPacket, GameState, type ChangeGameStatePacket, type TickPacket, type QuestionShowPacket } from "../net";
+import { NetService, PacketTypes, type Packet, type HostGamePacket, type PlayerJoinPacket, GameState, type ChangeGameStatePacket, type TickPacket, type QuestionShowPacket, type LeaderboardPacket, type LeaderboardEntry, type PlayerDisconnectPacket } from "../net";
 import type { Player, QuizQuestion } from "../../model/quiz";
 
 export const state: Writable<GameState> = writable(GameState.Lobby);
 export const players: Writable<Player[]> = writable([]);
+export const gameCode: Writable<string | null> = writable(null);
 export const tick: Writable<number> = writable(0);
+export const leaderboard: Writable<LeaderboardEntry[]> = writable([]);
 export const currentQuestion: Writable<QuizQuestion | null> = writable(null);
 
 export class HostGame {
@@ -50,6 +52,11 @@ export class HostGame {
             case PacketTypes.QuestionShow:{
                 let data = packet as QuestionShowPacket;
                 currentQuestion.set(data.question);
+                break;
+            }
+            case PacketTypes.Leaderboard:{
+                let data = packet as LeaderboardPacket;
+                leaderboard.set(data.points);
                 break;
             }
         }
