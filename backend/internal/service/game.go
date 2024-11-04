@@ -123,7 +123,7 @@ func (g *Game) NextQuestion() {
 }
 
 func (g *Game) Reveal() {
-	g.Time = 8
+	g.Time = 5
 	for _, player := range g.Players {
 		g.netService.SendPacket(player.Connection, PlayerRevealPacket{
 			Points: player.LastAwardedPoints,
@@ -147,7 +147,7 @@ func (g *Game) Tick() {
 			}
 		case RevealState:
 			{
-
+				g.Intermission()
 				break
 			}
 		case IntermissionState:

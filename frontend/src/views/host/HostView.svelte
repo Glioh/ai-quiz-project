@@ -6,6 +6,7 @@
     import HostLobbyView from "./HostLobbyView.svelte";
     import HostPlayView from "./HostPlayView.svelte";
     import HostQuizListView from "./HostQuizListView.svelte";
+    import HostEndView from "./HostEndView.svelte";
 
     let game = new HostGame();
     let active = false;
@@ -19,8 +20,9 @@
         [GameState.Lobby]: HostLobbyView,
         [GameState.Play]: HostPlayView,
         [GameState.Intermission]: HostIntermissionView,
-        [GameState.End]: undefined
-    };
+        [GameState.Reveal]: HostPlayView,
+        [GameState.End]: HostEndView
+    }
 </script>
 
 {#if active}
