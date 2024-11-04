@@ -114,7 +114,8 @@ func (g *Game) NextQuestion() {
 
 	g.ResetPlayerAnswerStates()
 	g.ChangeState(PlayState)
-	g.Time = 60
+	currentQuestion := g.getCurrentQuestion()
+	g.Time = currentQuestion.Time
 
 	g.netService.SendPacket(g.Host, QuestionShowPacket{
 		Question: g.getCurrentQuestion(),
@@ -125,6 +126,10 @@ func (g *Game) NextQuestion() {
 func (g *Game) Reveal() {
 	g.Time = 5
 	for _, player := range g.Players {
+		if !player.Answered {
+			player.LastAwardedPoints = 0
+		}
+
 		g.netService.SendPacket(player.Connection, PlayerRevealPacket{
 			Points: player.LastAwardedPoints,
 		})
