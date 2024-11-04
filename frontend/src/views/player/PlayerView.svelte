@@ -5,6 +5,7 @@
     import PlayerLobbyView from "./PlayerLobbyView.svelte";
     import PlayerPlayView from "./PlayerPlayView.svelte";
     import PlayerReviewView from "./PlayerReviewView.svelte";
+    import PlayerEndView from "./PlayerEndView.svelte";
 
 
     let game = new PlayerGame();
@@ -19,7 +20,7 @@
         [GameState.Play]: PlayerPlayView,
         [GameState.Reveal]: PlayerReviewView,
         [GameState.Intermission]: PlayerReviewView,
-        [GameState.End]: undefined
+        [GameState.End]: PlayerEndView,
     };
 </script>
 

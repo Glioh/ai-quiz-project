@@ -68,11 +68,6 @@ export interface LeaderboardEntry {
     points: number;
 }
 
-export interface LeaderboardEntry {
-    name: string;
-    points: number;
-}
-
 export interface LeaderboardPacket extends Packet {
     points: LeaderboardEntry[];
 }

@@ -102,6 +102,9 @@ func (g *Game) ResetPlayerAnswerStates() {
 func (g *Game) End() {
 	g.Ended = true
 	g.ChangeState(EndState)
+	g.BroadcastPacket(LeaderboardPacket{
+		Points: g.getLeaderboard(),
+	}, true)
 }
 
 func (g *Game) NextQuestion() {
