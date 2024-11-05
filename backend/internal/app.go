@@ -34,13 +34,18 @@ func (a *App) Init() {
 
 func (a *App) setupHttp() {
 	app := fiber.New()
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:5173",
+		AllowMethods: "GET,POST,PUT,DELETE",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	quizController := controller.Quiz(a.quizService)
-	app.Get("/api/quizzes", quizController.GetQuizzes)
-	app.Get("/api/quizzes/:quizId", quizController.GetQuizById)
-	app.Put("/api/quizzes/:quizId", quizController.UpdateQuizById)
-	app.Post("/api/quizzes", quizController.CreateQuiz)
+	app.Get("api/quizzes", quizController.GetQuizzes)
+	app.Get("api/quizzes/:quizId", quizController.GetQuizById)
+	app.Put("api/quizzes/:quizId", quizController.UpdateQuizById)
+	app.Post("api/quizzes", quizController.CreateQuiz)
+	app.Post("api/quiz/generate", quizController.GenerateAIQuiz)
 
 	wsController := controller.Ws(a.netService)
 	app.Get("/ws", websocket.New(wsController.Ws))

@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"quiz.com/quiz/internal/collection"
@@ -50,6 +51,30 @@ func (s QuizService) UpdateQuiz(id primitive.ObjectID, name string, questions []
 	quiz.Name = name
 	quiz.Questions = questions
 	return s.quizCollection.UpdateQuiz(*quiz)
+}
+
+func (s *QuizService) GenerateAIQuiz(name string, prompt string) (*entity.Quiz, error) {
+
+	aiService := NewAIService()
+	questions, err := aiService.GenerateQuiz(prompt)
+	if err != nil {
+		return nil, err
+	}
+
+	quiz := entity.Quiz{
+		Id:        primitive.NewObjectID(),
+		Name:      name,
+		Questions: questions,
+	}
+
+	err = s.quizCollection.InsertQuiz(quiz)
+	if err != nil {
+		fmt.Println("Error generating quiz:", err)
+		return nil, err
+	}
+
+	fmt.Println("Generated quiz:", quiz)
+	return &quiz, nil
 }
 
 func (s QuizService) GetQuizzes() ([]entity.Quiz, error) {

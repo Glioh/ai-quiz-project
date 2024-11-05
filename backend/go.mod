@@ -31,6 +31,7 @@ require github.com/gofiber/contrib/websocket v1.3.2
 
 require (
 	github.com/fasthttp/websocket v1.5.10 // indirect
+	github.com/joho/godotenv v1.5.1 // direct
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	golang.org/x/net v0.30.0 // indirect

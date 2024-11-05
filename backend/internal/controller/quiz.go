@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"quiz.com/quiz/internal/entity"
@@ -34,6 +36,35 @@ func (c QuizController) GetQuizById(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.JSON(quiz)
+}
+
+func (c *QuizController) GenerateAIQuiz(ctx *fiber.Ctx) error {
+	fmt.Println("Received GenerateAIQuiz request")
+	fmt.Printf("Raw body: %s\n", string(ctx.Body()))
+
+	var body struct {
+		Name   string `json:"name"`
+		Prompt string `json:"prompt"`
+	}
+
+	if err := ctx.BodyParser(&body); err != nil {
+		fmt.Printf("Error parsing request body: %v\n", err)
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": fmt.Sprintf("Invalid request body: %v", err),
+		})
+	}
+
+	fmt.Printf("Parsed request body: %+v\n", body)
+
+	quiz, err := c.quizService.GenerateAIQuiz(body.Name, body.Prompt)
+	if err != nil {
+		fmt.Printf("Error generating quiz: %v\n", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(quiz)
 }
 
 type UpdateQuizRequest struct {

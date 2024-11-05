@@ -8,6 +8,8 @@ export class ApiService {
         this.baseUrl = 'http://localhost:3000';
     }
 
+    
+
     async getQuizById(id: string): Promise<Quiz | null> {
         let response = await fetch(`http://localhost:3000/api/quizzes/${id}`);
         if (!response.ok) {
@@ -28,6 +30,36 @@ export class ApiService {
         });
         
         return await response.json();
+    }
+
+    async generateAIQuiz(name: string, prompt: string) {
+        try {
+            console.log('Sending request to:', `${this.baseUrl}/api/quiz/generate`);
+            console.log('Request payload:', { name, prompt });
+
+            const response = await fetch(`${this.baseUrl}/api/quiz/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, prompt }),
+            });
+
+            console.log('Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log('Response data:', data);
+            return data;
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
     }
 
     async getQuizzes(): Promise<Quiz[]> {
