@@ -27,12 +27,22 @@
         if (quiz == null) return;
 
         await apiService.saveQuiz(quiz.id, quiz);
-        window.location.href = "/#/host"; // Added navigation
+        window.location.href = "/#/host";
+    }
+
+    function goBack() {
+        // Check if there are unsaved changes
+        if (confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
+            window.location.href = "/#/host";
+        }
     }
 </script>
 
 {#if quiz != null}
-    <div class="bg-gray-100 w-full p-2 flex justify-end">
+    <div class="bg-gray-100 w-full p-2 flex justify-between items-center">
+        <Button on:click={goBack} class="bg-gray-500 hover:bg-gray-600">
+            Back
+        </Button>
         <div class="flex gap-2">
             <input
                 type="text"

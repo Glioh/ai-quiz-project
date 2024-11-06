@@ -8,8 +8,16 @@ export class ApiService {
         this.baseUrl = 'http://localhost:3000';
     }
 
+    async deleteQuiz(quizId: string): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/api/quizzes/${quizId}`, {
+            method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete quiz');
+        }
+    }
     
-
     async getQuizById(id: string): Promise<Quiz | null> {
         let response = await fetch(`http://localhost:3000/api/quizzes/${id}`);
         if (!response.ok) {

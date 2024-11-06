@@ -113,6 +113,25 @@ func (c QuizController) UpdateQuizById(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
+func (c QuizController) DeleteQuiz(ctx *fiber.Ctx) error {
+	quizIdStr := ctx.Params("quizId")
+	quizId, err := primitive.ObjectIDFromHex(quizIdStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid quiz ID format",
+		})
+	}
+
+	err = c.quizService.DeleteQuiz(quizId)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to delete quiz",
+		})
+	}
+
+	return ctx.SendStatus(fiber.StatusOK)
+}
+
 func (c QuizController) GetQuizzes(ctx *fiber.Ctx) error {
 	quizzes, err := c.quizService.GetQuizzes()
 	if err != nil {

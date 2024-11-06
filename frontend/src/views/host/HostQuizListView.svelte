@@ -1,13 +1,15 @@
 <script lang="ts">
     import QuizCard from '../../lib/QuizCard.svelte';
     import Button from '../../lib/Button.svelte';
-    import NewQuizButton from '../../lib/edit/NewQuizButton.svelte';
     import GenerateQuiz from '../../lib/QuizGeneratorForm.svelte';
+    import QuizCreationChoice from '../../lib/QuizCreationChoice.svelte';
     import type { Quiz } from '../../model/quiz';
-    import { ApiService } from '../../service/api';
+    import { apiService } from '../../service/api';
 
     let quizzes: Quiz[] = [];
-    let showForm = false; // controls display of the form
+    let showForm = false;
+    let showCreationChoice = false;
+    let creationMode: 'ai' | 'manual' | null = null;
 
     async function getQuizzes(): Promise<void> {
         try {
@@ -22,13 +24,39 @@
         }
     }
 
-    function toggleForm() {
-        showForm = !showForm;
+    function handleQuizDeleted(event: CustomEvent<string>) {
+        const deletedQuizId = event.detail;
+        quizzes = quizzes.filter(quiz => quiz.id !== deletedQuizId);
+    }
+
+    function toggleCreationChoice() {
+        showCreationChoice = !showCreationChoice;
+        creationMode = null;
+        showForm = false;
+    }
+
+    async function handleCreationChoice(event: CustomEvent<'ai' | 'manual'>) {
+        creationMode = event.detail;
+        showCreationChoice = false;
+        
+        if (creationMode === 'ai') {
+            showForm = true;
+        } else {
+            // Create a blank quiz and redirect to edit page
+            try {
+                const newQuiz = await apiService.createQuiz('New Quiz');
+                window.location.href = `/#/edit/${newQuiz.id}`;
+            } catch (error) {
+                console.error('Failed to create quiz:', error);
+                alert('Failed to create quiz');
+            }
+        }
     }
 
     async function handleQuizGenerated() {
-        showForm = false; // hide form after quiz generation
-        await getQuizzes(); // refresh the quiz list
+        showForm = false;
+        creationMode = null;
+        await getQuizzes();
     }
 
     function goBack() {
@@ -42,21 +70,41 @@
 
 <div class="p-8">
     <div class="flex justify-between items-center">
-        <h2 class="text-4xl font-bold">{showForm ? 'Create a New Quiz' : 'Your Quizzes'}</h2>
+        <h2 class="text-4xl font-bold">
+            {#if showForm}
+                Create AI Quiz
+            {:else if showCreationChoice}
+                Create New Quiz
+            {:else}
+                Your Quizzes
+            {/if}
+        </h2>
         <div class="flex gap-2">
-            <Button on:click={toggleForm}>{showForm ? 'Cancel' : 'New Quiz'}</Button>
+            {#if !showForm && !showCreationChoice}
+                <Button on:click={toggleCreationChoice}>New Quiz</Button>
+            {:else}
+                <Button on:click={() => {
+                    showForm = false;
+                    showCreationChoice = false;
+                    creationMode = null;
+                }}>Cancel</Button>
+            {/if}
             <Button on:click={goBack}>Back to Home</Button>
         </div>
     </div>
     
-    {#if showForm}
-        <!-- Quiz Generation Form -->
+    {#if showCreationChoice}
+        <QuizCreationChoice on:choice={handleCreationChoice} />
+    {:else if showForm}
         <GenerateQuiz on:generated={handleQuizGenerated} />
     {:else}
-        <!-- List of Quizzes -->
         <div class="flex flex-col gap-2 mt-4">
             {#each quizzes as quiz (quiz.id)}
-                <QuizCard on:host {quiz} />
+                <QuizCard
+                    {quiz}
+                    on:host
+                    on:deleted={handleQuizDeleted}
+                />
             {/each}
         </div>
     {/if}

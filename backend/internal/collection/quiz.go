@@ -39,6 +39,11 @@ func (c QuizCollection) GetQuizzes() ([]entity.Quiz, error) {
 	return quiz, nil
 }
 
+func (c QuizCollection) DeleteQuiz(id primitive.ObjectID) error {
+	_, err := c.collection.DeleteOne(context.Background(), bson.M{"_id": id})
+	return err
+}
+
 func (c QuizCollection) GetQuizById(id primitive.ObjectID) (*entity.Quiz, error) {
 	result := c.collection.FindOne(context.Background(), bson.M{"_id": id})
 

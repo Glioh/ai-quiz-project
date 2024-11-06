@@ -22,6 +22,13 @@
     function selectHost() {
         window.location.href = "/#/host";
     }
+
+    function goBack() {
+        showJoinForm = false;
+        // Reset form values when going back
+        code = "";
+        name = "";
+    }
 </script>
 
 <div class="bg-purple-400 min-h-screen w-full flex items-center justify-center">
@@ -37,12 +44,15 @@
         </div>
     {:else}
         <!-- Layer 2: Join Game Form -->
-        <div>
-            <h2 class="text-white font-bold text-5xl text-center">Quiz</h2>
-            <div class="flex flex-col gap-2 mt-10 items-center">
-                <input bind:value={code} type="text" placeholder="Game code" class="p-2 rounded" />
-                <input bind:value={name} type="text" placeholder="Name" class="p-2 rounded" />
-                <Button on:click={join}>Join game</Button>
+        <div class="text-center">
+            <h2 class="text-white font-bold text-5xl mb-8">Quiz</h2>
+            <div class="flex flex-col gap-2 items-center">
+                <input bind:value={code} type="text" placeholder="Game code" class="p-2 rounded w-64" />
+                <input bind:value={name} type="text" placeholder="Name" class="p-2 rounded w-64" />
+                <div class="flex gap-4 mt-4">
+                    <Button on:click={goBack}>Back</Button>
+                    <Button on:click={join}>Join game</Button>
+                </div>
             </div>
         </div>
     {/if}

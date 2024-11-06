@@ -53,6 +53,10 @@ func (s QuizService) UpdateQuiz(id primitive.ObjectID, name string, questions []
 	return s.quizCollection.UpdateQuiz(*quiz)
 }
 
+func (s QuizService) DeleteQuiz(id primitive.ObjectID) error {
+	return s.quizCollection.DeleteQuiz(id)
+}
+
 func (s *QuizService) GenerateAIQuiz(name string, prompt string) (*entity.Quiz, error) {
 
 	aiService := NewAIService()

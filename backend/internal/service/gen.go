@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/joho/godotenv"
 	"quiz.com/quiz/internal/entity"
 )
 
@@ -39,12 +38,8 @@ type GeneratedQuiz struct {
 }
 
 func NewAIService() *AIService {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		fmt.Printf("Warning: Error loading .env file: %v\n", err)
-	}
 
-	apiKey := "sk-YOURKEY"
+	apiKey := "YOUR KEY"
 	if apiKey == "" {
 		fmt.Println("Warning: OPENAI_API_KEY is not set")
 	}
@@ -74,6 +69,7 @@ func (s *AIService) GenerateQuiz(prompt string) ([]entity.QuizQuestion, error) {
     }
     Rules:
     - Generate 10 questions
+	- [IMPORTANT] Each question AND answer should have a maximum of 25 characters (including spaces)
     - Each question should have exactly 4 choices
     - Only one choice should be correct
     - Each question should have a reasonable between to solve between 10-30
