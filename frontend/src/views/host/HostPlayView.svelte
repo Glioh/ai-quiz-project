@@ -2,6 +2,7 @@
     import QuizChoiceCard from "../../lib/play/QuizChoiceCard.svelte";
     import Clock from "../../lib/Clock.svelte";
     import { COLORS, type QuizChoice } from "../../model/quiz";
+    import AudioController from "../../lib/AudioController.svelte";
     import { type HostGame, tick, currentQuestion, state } from "../../service/host/host";
     import { GameState } from "../../service/net";
 
@@ -11,13 +12,22 @@
         return choice.correct ? "bg-green-400" : "bg-red-400"
     }
 
-
     export let game: HostGame;
+
+    // Determine which audio file to play based on game state
+    $: audioFile = $state === GameState.Reveal ? "Reveal.mp3" : "Play.mp3";
 </script>
 
 {#if $currentQuestion != null}
     <div class="min-h-screen h-screen flex flex-col">
         <div class="bg-white text-3xl border-b p-4 font-bold text-center">
+            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+                <AudioController 
+                    {audioFile}
+                    iconColor="black"
+                    hoverBgColor="bg-gray-100"
+                />
+            </div>
             {$currentQuestion.name}
         </div>
         <div class="flex-1 flex flex-col justify-center pl-4">

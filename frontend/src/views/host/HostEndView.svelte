@@ -2,6 +2,7 @@
     import Leaderboard from "../../lib/Leaderboard.svelte";
     import { leaderboard } from "../../service/host/host";
     import Button from "../../lib/Button.svelte";
+    import AudioController from "../../lib/AudioController.svelte";
 
     function goHome() {
         window.location.href = "/";
@@ -9,6 +10,13 @@
 </script>
 
 <div class="flex justify-center bg-purple-500 min-h-screen w-full">
+    <div class="absolute top-8 left-8">
+        <AudioController 
+            audioFile="End.mp3"
+            iconColor="white"
+            hoverBgColor="bg-purple-600"
+        />
+    </div>
     <div class="mt-32">
         <h2 class="text-center text-white text-5xl font-bold">Game ended!</h2>
         <div class="flex flex-wrap gap-2 mt-10">

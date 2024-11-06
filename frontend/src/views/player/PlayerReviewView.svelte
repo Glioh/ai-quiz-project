@@ -1,19 +1,39 @@
-<script>
-    import {points} from "../../service/player/player";
+<script lang="ts">
+    import { points } from "../../service/player/player";
+    import AudioController from "../../lib/AudioController.svelte";
+    import { onMount } from 'svelte';
 
-    $: correct = $points > 0
+    let audioController: AudioController;
+    $: correct = $points > 0;
 
+    onMount(() => {
+        // Play the appropriate sound effect when the component mounts
+        if (correct) {
+            audioController.playCorrect();
+        } else {
+            audioController.playIncorrect();
+        }
+    });
 </script>
 
 <div
-    class="min-h-screen text-white w-full {correct
+    class="min-h-screen text-white w-full relative {correct
         ? 'bg-green-500'
         : 'bg-red-600'} flex justify-center items-center"
 >
+    <div class="absolute top-8 right-8">
+        <AudioController 
+            bind:this={audioController}
+            audioFile=""
+            iconColor="white"
+            hoverBgColor={correct ? "bg-green-600" : "bg-red-700"}
+        />
+    </div>
+
     {#if correct}
-    <div class="text-center">
-        <h2 class="text-3xl font-bold">Correct!</h2>
-        <p class="text-2xl">+ {$points} points</p>
+        <div class="text-center">
+            <h2 class="text-3xl font-bold">Correct!</h2>
+            <p class="text-2xl">+ {$points} points</p>
         </div>
     {:else}
         <h2 class="text-3xl">Incorrect!</h2>

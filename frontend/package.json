@@ -22,7 +22,9 @@
     "vite": "^5.4.8"
   },
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@sveltejs/kit": "^2.7.7",
+    "svelte-fa": "^4.0.3",
     "svelte-spa-router": "^4.0.1"
   }
 }

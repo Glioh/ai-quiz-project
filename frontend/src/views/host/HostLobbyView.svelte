@@ -2,6 +2,7 @@
     import Button from "../../lib/Button.svelte";
     import PlayerNameCard from "../../lib/lobby/PlayerNameCard.svelte";
     import { players, type HostGame, gameCode } from "../../service/host/host";
+    import AudioController from "../../lib/AudioController.svelte";
 
     export let game: HostGame;
 
@@ -11,7 +12,12 @@
 </script>
 
 <div class="p-8 bg-purple-500 min-h-screen w-full">
-    <div class="flex justify-end">
+    <div class="flex justify-between items-center">
+        <AudioController 
+            audioFile="Lobby.mp3"
+            iconColor="white"
+            hoverBgColor="bg-purple-600"
+        />
         <Button on:click={start}>Start game</Button>
     </div>
     <div class="text-center text-white">

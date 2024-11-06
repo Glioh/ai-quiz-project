@@ -221,12 +221,14 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 		}
 	case *StartGamePacket:
 		{
+			fmt.Println("Received StartGamePacket")
 			game := c.getGameByHost(con)
 			if game == nil {
+				fmt.Println("No game found for host connection")
 				return
 			}
-
-			game.StartOrSkjp()
+			fmt.Printf("Found game with code: %s, current state: %v\n", game.Code, game.State)
+			game.StartOrSkip()
 			break
 		}
 	case *QuestionAnswerPacket:

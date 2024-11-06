@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gofiber/contrib/websocket"
@@ -50,6 +51,7 @@ type Game struct {
 	Host       *websocket.Conn
 	netService *NetService
 	State      GameState
+	stateMutex sync.Mutex
 }
 
 func generateCode() string {
@@ -70,7 +72,7 @@ func newGame(quiz entity.Quiz, host *websocket.Conn, netService *NetService) Gam
 	}
 }
 
-func (g *Game) StartOrSkjp() {
+func (g *Game) StartOrSkip() {
 	if g.State == LobbyState {
 		g.Start()
 	} else {
@@ -100,7 +102,14 @@ func (g *Game) ResetPlayerAnswerStates() {
 }
 
 func (g *Game) End() {
+	g.stateMutex.Lock()
+	if g.Ended {
+		g.stateMutex.Unlock()
+		return
+	}
 	g.Ended = true
+	g.stateMutex.Unlock()
+
 	g.ChangeState(EndState)
 	g.BroadcastPacket(LeaderboardPacket{
 		Points: g.getLeaderboard(),
@@ -147,22 +156,17 @@ func (g *Game) Tick() {
 	})
 
 	if g.Time == 0 {
-		switch g.State {
+		g.stateMutex.Lock()
+		currentState := g.State
+		g.stateMutex.Unlock()
+
+		switch currentState {
 		case PlayState:
-			{
-				g.Reveal()
-				break
-			}
+			g.Reveal()
 		case RevealState:
-			{
-				g.Intermission()
-				break
-			}
+			g.Intermission()
 		case IntermissionState:
-			{
-				g.NextQuestion()
-				break
-			}
+			g.NextQuestion()
 		}
 	}
 }
@@ -193,11 +197,13 @@ func (g *Game) getLeaderboard() []LeaderboardEntry {
 }
 
 func (g *Game) ChangeState(state GameState) {
+	g.stateMutex.Lock()
+	defer g.stateMutex.Unlock()
+
 	g.State = state
 	g.BroadcastPacket(ChangeGameStatePacket{
 		State: state,
 	}, true)
-
 }
 
 func (g *Game) BroadcastPacket(packet any, includeHost bool) error {
