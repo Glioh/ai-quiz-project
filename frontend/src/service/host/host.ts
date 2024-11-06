@@ -26,9 +26,17 @@ export class HostGame {
 
         this.net.sendPacket(packet);
     }
+    
 
     start(){
         this.net.sendPacket({ id: PacketTypes.StartGame });
+    }
+
+    skip() {
+        let packet = {
+            id: PacketTypes.Skip
+        };
+        this.net.sendPacket(packet);
     }
 
     onPacket(packet: Packet){

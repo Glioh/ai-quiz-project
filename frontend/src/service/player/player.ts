@@ -36,6 +36,7 @@ export class PlayerGame {
     }
 
     onPacket(packet: Packet) {
+        console.log("Received packet:", packet); // Add debug logging
 
         switch(packet.id) {
             case PacketTypes.ChangeGameState: {

@@ -22,6 +22,8 @@
         [GameState.Intermission]: PlayerReviewView,
         [GameState.End]: PlayerEndView,
     };
+
+    $: console.log("Current game state:", $state);
 </script>
 
 {#if active}

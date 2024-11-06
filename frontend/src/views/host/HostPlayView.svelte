@@ -11,6 +11,10 @@
             return defaultColor
         return choice.correct ? "bg-green-400" : "bg-red-400"
     }
+    
+    function skipQuestion() {
+        game.skip();
+    }
 
     export let game: HostGame;
 
@@ -20,14 +24,24 @@
 
 {#if $currentQuestion != null}
     <div class="min-h-screen h-screen flex flex-col">
+        <div class="absolute left-4 top-4 z-10">
+            <AudioController 
+                {audioFile}
+                iconColor="black"
+                hoverBgColor="bg-gray-100"
+            />
+        </div>
+
+        <div class="absolute right-4 top-4 z-10">
+            <button 
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                on:click={skipQuestion}
+            >
+                Skip
+            </button>
+        </div>
+
         <div class="bg-white text-3xl border-b p-4 font-bold text-center">
-            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
-                <AudioController 
-                    {audioFile}
-                    iconColor="black"
-                    hoverBgColor="bg-gray-100"
-                />
-            </div>
             {$currentQuestion.name}
         </div>
         <div class="flex-1 flex flex-col justify-center pl-4">

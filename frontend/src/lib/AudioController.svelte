@@ -9,15 +9,29 @@
     export let hoverBgColor: string = "bg-purple-600";
     
     let audio: HTMLAudioElement | null = null;
+    let correctAudio: HTMLAudioElement | null = null;
+    let incorrectAudio: HTMLAudioElement | null = null;
+
+    // Function to determine if audio should loop based on filename
+    function shouldLoop(filename: string): boolean {
+        return filename === "Play.mp3"; // Only Play.mp3 will loop
+    }
 
     onMount(() => {
-        if (!audio) {
+        // Main audio
+        if (!audio && audioFile) {
             audio = new Audio(audioFile);
-            audio.loop = true;
+            audio.loop = shouldLoop(audioFile);
             audio.volume = 0.5;
             audio.muted = $isMuted;
             audio.play().catch(error => console.log("Audio autoplay failed:", error));
         }
+
+        // Initialize correct/incorrect audio
+        correctAudio = new Audio("Correct.mp3");
+        incorrectAudio = new Audio("Incorrect.mp3");
+        correctAudio.volume = 0.5;
+        incorrectAudio.volume = 0.5;
     });
 
     onDestroy(() => {
@@ -33,12 +47,32 @@
         if (audio) {
             audio.muted = $isMuted;
         }
+        if (correctAudio) correctAudio.muted = $isMuted;
+        if (incorrectAudio) incorrectAudio.muted = $isMuted;
     }
 
-    // Only change the audio source if the file changes
+    // Handle audio file changes
     $: if (audio && audioFile && audio.src !== new URL(audioFile, window.location.href).href) {
         audio.src = audioFile;
+        audio.loop = shouldLoop(audioFile);
         audio.play().catch(error => console.log("Audio play failed:", error));
+    }
+
+    // Export functions to play correct/incorrect sounds
+    export function playCorrect() {
+        if (correctAudio) {
+            correctAudio.currentTime = 0;
+            correctAudio.muted = $isMuted;
+            correctAudio.play().catch(error => console.log("Correct sound play failed:", error));
+        }
+    }
+
+    export function playIncorrect() {
+        if (incorrectAudio) {
+            incorrectAudio.currentTime = 0;
+            incorrectAudio.muted = $isMuted;
+            incorrectAudio.play().catch(error => console.log("Incorrect sound play failed:", error));
+        }
     }
 </script>
 

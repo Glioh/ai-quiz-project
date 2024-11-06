@@ -1,17 +1,25 @@
 <script lang="ts">
     import { points } from "../../service/player/player";
     import AudioController from "../../lib/AudioController.svelte";
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
 
     let audioController: AudioController;
     $: correct = $points > 0;
 
-    onMount(() => {
-        // Play the appropriate sound effect when the component mounts
-        if (correct) {
-            audioController.playCorrect();
-        } else {
-            audioController.playIncorrect();
+    onMount(async () => {
+        // Wait for next tick to ensure audioController is initialized
+        await tick();
+        
+        try {
+            if (audioController) {
+                if (correct) {
+                    audioController.playCorrect();
+                } else {
+                    audioController.playIncorrect();
+                }
+            }
+        } catch (err) {
+            console.log("Error playing sound:", err);
         }
     });
 </script>

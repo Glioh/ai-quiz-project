@@ -54,6 +54,9 @@ type PlayerDisconnectPacket struct {
 	PlayerId uuid.UUID `json:"playerId"`
 }
 
+type SkipPacket struct {
+}
+
 type TickPacket struct {
 	Tick int `json:"tick"`
 }
@@ -88,7 +91,12 @@ func (c *NetService) packetIdToPacket(packetId uint8) any {
 		{
 			return &QuestionAnswerPacket{}
 		}
+	case 11:
+		{
+			return &SkipPacket{}
+		}
 	}
+
 	return nil
 }
 
@@ -112,6 +120,8 @@ func (c *NetService) packetToPacketId(packet any) (uint8, error) {
 		return 9, nil
 	case PlayerDisconnectPacket:
 		return 10, nil
+	case SkipPacket:
+		return 11, nil
 	}
 
 	return 0, errors.New("invalid packet type")
@@ -239,6 +249,15 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			}
 
 			game.OnPlayerAnswer(data.Question, player)
+			break
+		}
+	case *SkipPacket:
+		{
+			game := c.getGameByHost(con)
+			if game == nil {
+				return
+			}
+			game.Skip()
 			break
 		}
 	}

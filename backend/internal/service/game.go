@@ -136,7 +136,7 @@ func (g *Game) NextQuestion() {
 }
 
 func (g *Game) Reveal() {
-	g.Time = 5
+	g.Time = 7
 	for _, player := range g.Players {
 		if !player.Answered {
 			player.LastAwardedPoints = 0
@@ -156,17 +156,22 @@ func (g *Game) Tick() {
 	})
 
 	if g.Time == 0 {
-		g.stateMutex.Lock()
-		currentState := g.State
-		g.stateMutex.Unlock()
-
-		switch currentState {
+		switch g.State {
 		case PlayState:
-			g.Reveal()
+			{
+				g.Reveal()
+				break
+			}
 		case RevealState:
-			g.Intermission()
+			{
+				g.Intermission()
+				break
+			}
 		case IntermissionState:
-			g.NextQuestion()
+			{
+				g.NextQuestion()
+				break
+			}
 		}
 	}
 }
@@ -174,9 +179,11 @@ func (g *Game) Tick() {
 func (g *Game) Intermission() {
 	g.Time = 30
 	g.ChangeState(IntermissionState)
-	g.netService.SendPacket(g.Host, LeaderboardPacket{
+
+	// Broadcast leaderboard to all players and host
+	g.BroadcastPacket(LeaderboardPacket{
 		Points: g.getLeaderboard(),
-	})
+	}, true)
 }
 
 func (g *Game) getLeaderboard() []LeaderboardEntry {
@@ -200,6 +207,7 @@ func (g *Game) ChangeState(state GameState) {
 	g.stateMutex.Lock()
 	defer g.stateMutex.Unlock()
 
+	fmt.Printf("State changing from %v to %v\n", g.State, state) // Add debug log
 	g.State = state
 	g.BroadcastPacket(ChangeGameStatePacket{
 		State: state,
@@ -268,6 +276,30 @@ func (g *Game) getAnsweredPlayers() []*Player {
 	}
 
 	return players
+}
+
+func (g *Game) Skip() {
+	g.stateMutex.Lock()
+	currentState := g.State
+	g.stateMutex.Unlock()
+
+	// Force all unanswered players to get 0 points
+	for _, player := range g.Players {
+		if !player.Answered {
+			player.LastAwardedPoints = 0
+			player.Answered = true
+		}
+	}
+
+	// Different behavior based on current state
+	switch currentState {
+	case PlayState:
+		g.Reveal()
+	case RevealState:
+		g.Intermission()
+	case IntermissionState:
+		g.NextQuestion()
+	}
 }
 
 func (g *Game) getCurrentQuestion() entity.QuizQuestion {
