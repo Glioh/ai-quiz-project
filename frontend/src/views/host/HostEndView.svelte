@@ -23,7 +23,9 @@
             <Leaderboard finish={true} leaderboard={$leaderboard} />
         </div>
         <div class="flex justify-center mt-8">
-            <Button on:click={goHome}>Back to Home</Button>
+            <div class="[&>button]:bg-purple-600 [&>button]:hover:bg-purple-700">
+                <Button on:click={goHome}>Back to Home</Button>
+            </div>
         </div>
     </div>
 </div>

@@ -12,7 +12,7 @@
 </script>
 
 <div class="bg-purple-500 min-h-screen w-full">
-    <div class="flex justify-end p-8">
+    <div class="[&>button]:bg-purple-600 [&>button]:hover:bg-purple-700 flex justify-end p-8">
         <Button on:click={skip}>Skip</Button>
     </div>
     <div class="mt-20 flex justify-center">

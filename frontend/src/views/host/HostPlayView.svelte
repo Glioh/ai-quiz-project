@@ -34,7 +34,7 @@
 
         <div class="absolute right-4 top-4 z-10">
             <button 
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
                 on:click={skipQuestion}
             >
                 Skip

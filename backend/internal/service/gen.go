@@ -49,8 +49,13 @@ func NewAIService() *AIService {
 	}
 }
 
-func (s *AIService) GenerateQuiz(prompt string) ([]entity.QuizQuestion, error) {
-	systemPrompt := `Generate a quiz based on the given topic. Return the response in valid JSON format with the following structure:
+func (s *AIService) GenerateQuiz(prompt string, numQuestions int) ([]entity.QuizQuestion, error) {
+	// Add validation
+	if numQuestions < 1 || numQuestions > 20 {
+		return nil, errors.New("number of questions must be between 1 and 20")
+	}
+
+	systemPrompt := fmt.Sprintf(`Generate a quiz based on the given topic. Return the response in valid JSON format with the following structure:
     {
         "questions": [
             {
@@ -68,13 +73,14 @@ func (s *AIService) GenerateQuiz(prompt string) ([]entity.QuizQuestion, error) {
         ]
     }
     Rules:
-    - Generate 10 questions
-	- [IMPORTANT] Each question AND answer should have a maximum of 25 characters (including spaces)
+    - Generate exactly %d questions
+    - [IMPORTANT] Each question AND answer should have a maximum of 25 characters (including spaces)
     - Each question should have exactly 4 choices
     - Only one choice should be correct
-    - Each question should have a reasonable between to solve between 10-30
+    - Each question should have a reasonable time between 10-30 seconds to solve
     - Generate valid UUIDs for all IDs
-    - Ensure all fields match the exact names shown above`
+    - Ensure all fields match the exact names shown above
+    - Return ONLY the JSON response, no additional text`, numQuestions) // Added this line
 
 	messages := []Message{
 		{Role: "system", Content: systemPrompt},
@@ -82,7 +88,7 @@ func (s *AIService) GenerateQuiz(prompt string) ([]entity.QuizQuestion, error) {
 	}
 
 	reqBody := OpenAIRequest{
-		Model:       "gpt-3.5-turbo", // or "gpt-4" if you have access
+		Model:       "gpt-3.5-turbo",
 		Messages:    messages,
 		Temperature: 0.7,
 	}
@@ -117,21 +123,29 @@ func (s *AIService) GenerateQuiz(prompt string) ([]entity.QuizQuestion, error) {
 
 	var openAIResp OpenAIResponse
 	if err := json.NewDecoder(resp.Body).Decode(&openAIResp); err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
+		return nil, fmt.Errorf("error decoding OpenAI response: %w", err)
 	}
 
 	if len(openAIResp.Choices) == 0 {
 		return nil, errors.New("no response from AI")
 	}
 
+	// Add debug logging
+	fmt.Printf("Raw AI response content: %s\n", openAIResp.Choices[0].Message.Content)
+
 	// Parse the AI response into quiz questions
 	var generatedQuiz GeneratedQuiz
 	if err := json.Unmarshal([]byte(openAIResp.Choices[0].Message.Content), &generatedQuiz); err != nil {
-		return nil, fmt.Errorf("error parsing AI response: %w", err)
+		return nil, fmt.Errorf("error parsing AI response JSON: %w\nResponse content: %s", err, openAIResp.Choices[0].Message.Content)
 	}
 
 	if len(generatedQuiz.Questions) == 0 {
 		return nil, errors.New("no questions generated")
+	}
+
+	// Verify the number of questions matches the request
+	if len(generatedQuiz.Questions) != numQuestions {
+		return nil, fmt.Errorf("AI generated %d questions but %d were requested", len(generatedQuiz.Questions), numQuestions)
 	}
 
 	return generatedQuiz.Questions, nil

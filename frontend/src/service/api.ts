@@ -40,27 +40,27 @@ export class ApiService {
         return await response.json();
     }
 
-    async generateAIQuiz(name: string, prompt: string) {
+    async generateAIQuiz(name: string, prompt: string, numQuestions: number = 10) {
         try {
             console.log('Sending request to:', `${this.baseUrl}/api/quiz/generate`);
-            console.log('Request payload:', { name, prompt });
-
+            console.log('Request payload:', { name, prompt, numQuestions });
+    
             const response = await fetch(`${this.baseUrl}/api/quiz/generate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name, prompt }),
+                body: JSON.stringify({ name, prompt, numQuestions }),
             });
-
+    
             console.log('Response status:', response.status);
-
+    
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
-
+    
             const data = await response.json();
             console.log('Response data:', data);
             return data;

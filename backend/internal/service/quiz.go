@@ -57,10 +57,9 @@ func (s QuizService) DeleteQuiz(id primitive.ObjectID) error {
 	return s.quizCollection.DeleteQuiz(id)
 }
 
-func (s *QuizService) GenerateAIQuiz(name string, prompt string) (*entity.Quiz, error) {
-
+func (s *QuizService) GenerateAIQuiz(name string, prompt string, numQuestions int) (*entity.Quiz, error) {
 	aiService := NewAIService()
-	questions, err := aiService.GenerateQuiz(prompt)
+	questions, err := aiService.GenerateQuiz(prompt, numQuestions)
 	if err != nil {
 		return nil, err
 	}

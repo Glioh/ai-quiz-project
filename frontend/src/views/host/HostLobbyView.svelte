@@ -18,7 +18,9 @@
             iconColor="white"
             hoverBgColor="bg-purple-600"
         />
-        <Button on:click={start}>Start game</Button>
+        <div class="[&>button]:bg-purple-600 [&>button]:hover:bg-purple-700">
+            <Button on:click={start}>Start game</Button>
+        </div>
     </div>
     <div class="text-center text-white">
         <h2 class="text-4xl">Join with game code</h2>

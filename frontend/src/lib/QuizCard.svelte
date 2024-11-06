@@ -34,7 +34,7 @@
         <div class="flex gap-2">
             <Button on:click={handleHost}>Host</Button>
             <Button on:click={handleEdit}>Edit</Button>
-            <Button on:click={handleDelete} class="bg-red-500 hover:bg-red-600">Delete</Button>
+            <Button on:click={handleDelete}>Delete</Button>
         </div>
     </div>
     <p class="mt-2 text-gray-600">{quiz.questions?.length || 0} questions</p>

@@ -13,6 +13,12 @@ type QuizController struct {
 	quizService *service.QuizService
 }
 
+type GenerateQuizRequest struct {
+	Name         string `json:"name"`
+	Prompt       string `json:"prompt"`
+	NumQuestions int    `json:"numQuestions"`
+}
+
 func Quiz(quizService *service.QuizService) QuizController {
 	return QuizController{
 		quizService: quizService,
@@ -42,11 +48,7 @@ func (c *QuizController) GenerateAIQuiz(ctx *fiber.Ctx) error {
 	fmt.Println("Received GenerateAIQuiz request")
 	fmt.Printf("Raw body: %s\n", string(ctx.Body()))
 
-	var body struct {
-		Name   string `json:"name"`
-		Prompt string `json:"prompt"`
-	}
-
+	var body GenerateQuizRequest
 	if err := ctx.BodyParser(&body); err != nil {
 		fmt.Printf("Error parsing request body: %v\n", err)
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -54,9 +56,17 @@ func (c *QuizController) GenerateAIQuiz(ctx *fiber.Ctx) error {
 		})
 	}
 
+	// Add validation for numQuestions
+	if body.NumQuestions < 1 || body.NumQuestions > 20 {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Number of questions must be between 1 and 20",
+		})
+	}
+
 	fmt.Printf("Parsed request body: %+v\n", body)
 
-	quiz, err := c.quizService.GenerateAIQuiz(body.Name, body.Prompt)
+	// Pass numQuestions to the service
+	quiz, err := c.quizService.GenerateAIQuiz(body.Name, body.Prompt, body.NumQuestions)
 	if err != nil {
 		fmt.Printf("Error generating quiz: %v\n", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
