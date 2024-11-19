@@ -21,15 +21,6 @@ Uses a ChatGPT wrapper to fetch JSON data related to to whatever prompt the user
 
 # Code Logic and Architecture
 
-## Overall Flow
-The application follows a comprehensive flow for quiz generation and management:
-
-1. **User Journey**
-- Users can choose between manual quiz creation or AI-generated quizzes
-- AI generation path includes input validation before processing
-- Both paths lead to a unified quiz editor interface
-- Final quizzes are saved in MongoDB
-
 ## Architecture Components
 
 ### High-Level Architecture
